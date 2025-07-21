@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tamagotchi Uni Tour Code Generator</title>
+  <style>
+    body { 
+      font-family: sans-serif; 
+      padding: 2em; 
+      background: linear-gradient(135deg, #9370db, #8a2be2, #9370db);
+      background-image: 
+        radial-gradient(circle at 20% 80%, rgba(147, 112, 219, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(138, 43, 226, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(147, 112, 219, 0.2) 0%, transparent 50%);
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .content-window {
+      background: white;
+      padding: 2em;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(147, 112, 219, 0.3);
+      border: 3px solid #9370db;
+      max-width: 600px;
+      width: 100%;
+    }
+    
+    input, button { 
+      padding: 0.5em; 
+      font-size: 1em; 
+      border: 2px solid #9370db;
+      border-radius: 8px;
+      background: white;
+      color: black;
+    }
+    
+    button {
+      background: linear-gradient(45deg, #9370db, #8a2be2);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(147, 112, 219, 0.3);
+    }
+    
+    #output { 
+      margin-top: 1em; 
+      font-weight: bold; 
+      background: white;
+      padding: 1em;
+      border-radius: 8px;
+      border: 2px solid #9370db;
+      color: black;
+    }
+    
+    h1 {
+      color: #8a2be2;
+      text-shadow: 2px 2px 4px rgba(138, 43, 226, 0.3);
+      margin-top: 0;
+    }
+    
+  </style>
+</head>
+<body>
+  <div class="content-window">
+    <h1>Tamagotchi Uni Tour Code Generator</h1>
+    <p>How to use: Go to Plaza Link on the Tamagotchi Uni, hand out flyers, and join a Tamahiko Tour.</p>
+    <p>Enter the tour code from Uni below, and click "Generate" to get a corresponding parting code.</p>
+    <input type="text" id="inputCode" placeholder="Enter tour code from Uni" maxlength="8" />
+    <button onclick="generate()">Generate</button>
+    <div id="output">Parting Code will appear here</div>
+  </div>
+
+  <!-- CryptoJS (for HMAC-MD5) -->
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
+
+  <script>
+    // Add event listener for Enter key
+    document.getElementById('inputCode').addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        generate();
+      }
+    });
+
+    // Group related constants together
+    const ALPHANUMSYM = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!?";
+
+    // Group the LUTs together
+    const CHAR_TO_CHAR_LUT = {
+        '0': 'd', '1': '7', '2': 'b', '3': '1', '4': '3', '5': 'a',
+        '6': '5', '7': 'f', '8': '2', '9': '4', 'a': '0', 'b': '6',
+        'c': '8', 'd': '9', 'e': 'e', 'f': 'c'
+    };
+
+    const CHAR_TO_INT_LUT = {
+        '0': 0x11, '1': 0x23, '2': 0x39, '3': 0x03, '4': 0x20, '5': 0x10,
+        '6': 0x1a, '7': 0x21, '8': 0x29, '9': 0x37, 'a': 0x35, 'b': 0x04,
+        'c': 0x1c, 'd': 0x09, 'e': 0x18, 'f': 0x0f, 'g': 0x3d, 'h': 0x2e,
+        'i': 0x0c, 'j': 0x06, 'k': 0x12, 'l': 0x3c, 'm': 0x3b, 'n': 0x05,
+        'o': 0x1f, 'p': 0x31, 'q': 0x2a, 'r': 0x3f, 's': 0x1e, 't': 0x07,
+        'u': 0x36, 'v': 0x28, 'w': 0x32, 'x': 0x34, 'y': 0x13, 'z': 0x08,
+        'A': 0x25, 'B': 0x1b, 'C': 0x01, 'D': 0x24, 'E': 0x3a, 'F': 0x2d,
+        'G': 0x27, 'H': 0x3e, 'I': 0x17, 'J': 0x15, 'K': 0x1d, 'L': 0x38,
+        'M': 0x2b, 'N': 0x0a, 'O': 0x00, 'P': 0x33, 'Q': 0x0b, 'R': 0x19,
+        'S': 0x30, 'T': 0x16, 'U': 0x2f, 'V': 0x14, 'W': 0x0e, 'X': 0x22,
+        'Y': 0x2c, 'Z': 0x26, '!': 0x0d, '?': 0x02
+    };
+
+    function applyCharLUT(hexStr) {
+      return hexStr.split('').map(c => CHAR_TO_CHAR_LUT[c.toLowerCase()] || c).join('');
+    }
+
+    function applyIntLUT(hexStr) {
+      return hexStr.split('').map(c => CHAR_TO_INT_LUT[c] ?? -1);
+    }
+
+    function strToBase64(str) {
+      // Get index of each character in ALPHANUMSYM
+      const indices = str.split('').map(c => ALPHANUMSYM.indexOf(c));
+
+      // Convert indices to base64 using matching key from CHAR_TO_INT_LUT
+      return indices.map(i => Object.keys(CHAR_TO_INT_LUT).find(key => CHAR_TO_INT_LUT[key] === i)).join('');
+    }
+
+    function hexToCustomBase64(hex) {
+      // Convert hex string to a large integer
+      let decimal = BigInt('0x' + hex);
+      
+      // Convert to base-64 using ALPHANUMSYM as digits
+      let result = '';
+      const base = 64n;
+      
+      if (decimal === 0n) return '0';
+      
+      while (decimal > 0n) {
+        const remainder = Number(decimal % base);
+        result = ALPHANUMSYM[remainder] + result;
+        decimal = decimal / base;
+      }
+      
+      return result;
+    }
+
+    function customBase64ToHex(base64Str) {
+      // Convert from base-64 using ALPHANUMSYM as digits
+      let decimal = 0n;
+      const base = 64n;
+      
+      for (let i = 0; i < base64Str.length; i++) {
+        const char = base64Str[i];
+        const digit = BigInt(ALPHANUMSYM.indexOf(char));
+        decimal = decimal * base + digit;
+      }
+      
+      // Convert to hex
+      return decimal.toString(16);
+    }
+
+    function decodeTourCode(tourCode) {
+      // Convert tour code to base64 (custom base64)
+      const base64TourCode = strToBase64(tourCode);
+
+      // Convert base64 to hex
+      const hexTourCode = customBase64ToHex(base64TourCode);
+
+      // payload hex is string except last 5 characters
+      // (the other 5 characters are used for hash check)
+      const payloadHex = hexTourCode.slice(0, -5);
+
+      // Payload hash1
+      const hash1 = CryptoJS.HmacMD5(payloadHex, "9R14i10zFk").toString(CryptoJS.enc.Hex);
+      const replaceHash1 = applyCharLUT(hash1);
+      const hash2 = CryptoJS.HmacMD5(replaceHash1, "ywcp3uAA6l").toString(CryptoJS.enc.Hex);
+
+      // Get category... TODO not used for now
+      const categoryNibble = payloadHex.slice(0, 1);
+      const category = parseInt(categoryNibble) === 2 ? 2 : 1;
+
+      // Get oneTime
+      const oneTime = payloadHex.slice(1, 5);
+
+      // Get payload
+      const payload = payloadHex.slice(-2);
+
+      // skip hash check for now (TODO), assume that the tour code is valid
+
+      return {
+        category,
+        oneTime,
+        payload
+      };
+    }
+
+    function generate() {
+      const tourCode = document.getElementById('inputCode').value;
+
+      // Check if tour code is exactly 8 characters
+      if (tourCode.length !== 8) {
+        document.getElementById('output').textContent = 'Tour code must be 8 characters';
+        return;
+      }
+
+      // Get category, oneTime, payload
+      // (category is not used for now)
+      const { category, oneTime, payload } = decodeTourCode(tourCode);
+
+      const baseCode = "2" + oneTime + payload;
+
+      // HMAC-MD5
+      const hash1 = CryptoJS.HmacMD5(baseCode, "9R14i10zFk").toString(CryptoJS.enc.Hex);
+      const replaceHash1 = applyCharLUT(hash1);
+      const hash2 = CryptoJS.HmacMD5(replaceHash1, "ywcp3uAA6l").toString(CryptoJS.enc.Hex);
+
+      // get last 5 characters of hash
+      const finalHash = hash2.slice(-5);
+
+      const hexCode = baseCode + finalHash;
+
+      // Convert hex to base64
+      const base64 = hexToCustomBase64(hexCode);
+
+      // Apply LUT
+      const base64LUT = applyIntLUT(base64);
+
+      // build final string using ALPHANUMSYM
+      const partingCode = base64LUT.map(c => ALPHANUMSYM[c]).join('');
+
+      // Show result
+      document.getElementById('output').textContent = `Parting Code: ${partingCode}`;
+    }
+  </script>
+
+  <!-- Ko-fi widget -->
+  <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+  <script>
+    kofiWidgetOverlay.draw('cococode', {
+      'type': 'floating-chat',
+      'floating-chat.donateButton.text': 'Buy me coffee',
+      'floating-chat.donateButton.background-color': '#794bc4',
+      'floating-chat.donateButton.text-color': '#fff'
+    });
+  </script>
+</body>
+</html>
