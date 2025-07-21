@@ -6,14 +6,14 @@
   <style>
     body { 
       font-family: sans-serif; 
-      padding: 2em; 
+      margin: 0;
+      padding: 1em;
       background: linear-gradient(135deg, #9370db, #8a2be2, #9370db);
       background-image: 
         radial-gradient(circle at 20% 80%, rgba(147, 112, 219, 0.3) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgba(138, 43, 226, 0.3) 0%, transparent 50%),
         radial-gradient(circle at 40% 40%, rgba(147, 112, 219, 0.2) 0%, transparent 50%);
       min-height: 100vh;
-      margin: 0;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -21,21 +21,25 @@
     
     .content-window {
       background: white;
-      padding: 2em;
+      padding: 1.5em;
       border-radius: 15px;
       box-shadow: 0 8px 32px rgba(147, 112, 219, 0.3);
       border: 3px solid #9370db;
-      max-width: 600px;
       width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
     }
     
     input, button { 
-      padding: 0.5em; 
-      font-size: 1em; 
+      width: 100%;
+      padding: 1.2em;
+      font-size: 1.2em;
       border: 2px solid #9370db;
-      border-radius: 8px;
+      border-radius: 12px;
       background: white;
       color: black;
+      box-sizing: border-box;
+      margin: 0.5em 0;
     }
     
     button {
@@ -43,6 +47,8 @@
       color: white;
       cursor: pointer;
       transition: all 0.3s ease;
+      font-weight: bold;
+      min-height: 60px;
     }
     
     button:hover {
@@ -50,53 +56,66 @@
       box-shadow: 0 4px 8px rgba(147, 112, 219, 0.3);
     }
     
+    button:active {
+      transform: translateY(0);
+    }
+    
     #output { 
       margin-top: 1em; 
       font-weight: bold; 
       background: white;
-      padding: 1em;
-      border-radius: 8px;
+      padding: 1.2em;
+      border-radius: 12px;
       border: 2px solid #9370db;
       color: black;
+      text-align: center;
+      font-size: 1.1em;
     }
     
     h1 {
       color: #8a2be2;
       text-shadow: 2px 2px 4px rgba(138, 43, 226, 0.3);
       margin-top: 0;
+      font-size: 1.4em;
+      text-align: center;
     }
     
-    /* Mobile responsive styles */
-    @media (max-width: 768px) {
+    p {
+      margin: 0.8em 0;
+      line-height: 1.4;
+    }
+    
+    /* Desktop styles */
+    @media (min-width: 768px) {
       body {
-        padding: 1em;
+        padding: 2em;
       }
       
       .content-window {
-        padding: 1.5em;
+        padding: 2em;
+        max-width: 600px;
       }
       
       input, button {
-        padding: 1em;
-        font-size: 1.2em;
-        margin: 0.5em 0;
-        width: 100%;
-        box-sizing: border-box;
+        padding: 0.8em;
+        font-size: 1em;
+        width: auto;
+        margin: 0.3em 0;
       }
       
       button {
-        margin-top: 1em;
+        min-height: auto;
       }
       
       h1 {
-        font-size: 1.5em;
+        font-size: 1.8em;
       }
       
-      p {
+      #output {
+        padding: 1em;
         font-size: 1em;
       }
     }
-    
   </style>
 </head>
 <body>
