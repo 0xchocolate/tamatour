@@ -4,64 +4,62 @@
   <meta charset="UTF-8">
   <title>Tamagotchi Uni Tour Code Generator</title>
   <style>
-    body { 
-      font-family: sans-serif; 
+    body {
+      font-family: sans-serif;
       margin: 0;
-      padding: 1em;
+      padding: 0;
       background: linear-gradient(135deg, #9370db, #8a2be2, #9370db);
-      background-image: 
+      background-image:
         radial-gradient(circle at 20% 80%, rgba(147, 112, 219, 0.3) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgba(138, 43, 226, 0.3) 0%, transparent 50%),
         radial-gradient(circle at 40% 40%, rgba(147, 112, 219, 0.2) 0%, transparent 50%);
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      min-width: 100vw;
     }
-    
+
     .content-window {
       background: white;
-      padding: 1.5em;
+      padding: 1em;
       border-radius: 15px;
       box-shadow: 0 8px 32px rgba(147, 112, 219, 0.3);
       border: 3px solid #9370db;
-      width: 100%;
-      max-width: 400px;
+      width: 80vw;
+      margin: 2vh auto;
       box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-size: 4vw;
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.4;
+      color: #8a2be2;
+      font-family: 'Arial', sans-serif;
+    }
+
+    @media (min-width: 1000px) {
+      .content-window {
+        font-size: 1.2em;
+        width: 500px;
+        margin: 3em auto;
+        min-height: 0;
+      }
     }
     
-    input, button { 
+    input { 
       width: 100%;
-      padding: 1.2em;
+      padding: 1em;
       font-size: 1.2em;
       border: 2px solid #9370db;
       border-radius: 12px;
       background: white;
       color: black;
       box-sizing: border-box;
-      margin: 0.5em 0;
-    }
-    
-    button {
-      background: linear-gradient(45deg, #9370db, #8a2be2);
-      color: white;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-weight: bold;
-      min-height: 60px;
-    }
-    
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(147, 112, 219, 0.3);
-    }
-    
-    button:active {
-      transform: translateY(0);
+      margin: 0.3em 0;
     }
     
     #output { 
-      margin-top: 1em; 
+      margin-top: 0.5em; 
       font-weight: bold; 
       background: white;
       padding: 1.2em;
@@ -69,52 +67,23 @@
       border: 2px solid #9370db;
       color: black;
       text-align: center;
-      font-size: 1.1em;
     }
     
     h1 {
       color: #8a2be2;
       text-shadow: 2px 2px 4px rgba(138, 43, 226, 0.3);
       margin-top: 0;
-      font-size: 1.4em;
       text-align: center;
     }
     
     p {
-      margin: 0.8em 0;
+      margin: 0.5em 0;
       line-height: 1.4;
     }
-    
-    /* Desktop styles */
-    @media (min-width: 768px) {
-      body {
-        padding: 2em;
-      }
-      
-      .content-window {
-        padding: 2em;
-        max-width: 600px;
-      }
-      
-      input, button {
-        padding: 0.8em;
-        font-size: 1em;
-        width: auto;
-        margin: 0.3em 0;
-      }
-      
-      button {
-        min-height: auto;
-      }
-      
-      h1 {
-        font-size: 1.8em;
-      }
-      
-      #output {
-        padding: 1em;
-        font-size: 1em;
-      }
+
+    a {
+      color: #8a2be2;
+      text-decoration: none;
     }
   </style>
 </head>
@@ -122,20 +91,27 @@
   <div class="content-window">
     <h1>Tamagotchi Uni Tour Code Generator</h1>
     <p>How to use: Go to Plaza Link on the Tamagotchi Uni, hand out flyers, and join a Tamahiko Tour.</p>
-    <p>Enter the tour code from Uni below, and click "Generate" to get a corresponding parting code.</p>
+    <p>Enter the tour code from Uni below to get a corresponding parting code.</p>
     <input type="text" id="inputCode" placeholder="Enter tour code from Uni" maxlength="8" />
-    <button onclick="generate()">Generate</button>
     <div id="output">Parting Code will appear here</div>
+    <p>💜 cococode</p>
+    <p><a href="https://discord.gg/EJdkbWxz" target="_blank">Tap here to join our vpet hacking discord!</a></p>
   </div>
 
   <!-- CryptoJS (for HMAC-MD5) -->
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
   <script>
-    // Add event listener for Enter key
-    document.getElementById('inputCode').addEventListener('keypress', function(event) {
-      if (event.key === 'Enter') {
+    // Add event listener for input changes
+    document.getElementById('inputCode').addEventListener('input', function(event) {
+      const tourCode = event.target.value;
+      
+      // Auto-generate when length is exactly 8
+      if (tourCode.length === 8) {
         generate();
+      } else {
+        // Reset output if not 8 characters
+        document.getElementById('output').textContent = 'Parting Code will appear here';
       }
     });
 
@@ -292,9 +268,9 @@
   <script>
     kofiWidgetOverlay.draw('cococode', {
       'type': 'floating-chat',
-      'floating-chat.donateButton.text': 'Buy me coffee',
+      'floating-chat.donateButton.text': 'Tip Me',
       'floating-chat.donateButton.background-color': '#794bc4',
-      'floating-chat.donateButton.text-color': '#fff'
+      'floating-chat.donateButton.text-color': '#fff',
     });
   </script>
 </body>
