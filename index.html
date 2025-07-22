@@ -117,10 +117,8 @@
       }
     });
 
-    // Group related constants together
     const ALPHANUMSYM = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!?";
 
-    // Group the LUTs together
     const CHAR_TO_CHAR_LUT = {
         '0': 'd', '1': '7', '2': 'b', '3': '1', '4': '3', '5': 'a',
         '6': '5', '7': 'f', '8': '2', '9': '4', 'a': '0', 'b': '6',
@@ -180,7 +178,7 @@
       // Convert from base-64 using ALPHANUMSYM as digits
       let decimal = 0n;
       const base = 64n;
-      
+
       for (let i = 0; i < base64Str.length; i++) {
         const char = base64Str[i];
         const digit = BigInt(ALPHANUMSYM.indexOf(char));
@@ -201,13 +199,24 @@
       // payload hex is string except last 5 characters
       // (the other 5 characters are used for hash check)
       const payloadHex = hexTourCode.slice(0, -5);
+      const payloadHash = hexTourCode.slice(-5);
 
       // Payload hash1
       const hash1 = CryptoJS.HmacMD5(payloadHex, "9R14i10zFk").toString(CryptoJS.enc.Hex);
       const replaceHash1 = applyCharLUT(hash1);
       const hash2 = CryptoJS.HmacMD5(replaceHash1, "ywcp3uAA6l").toString(CryptoJS.enc.Hex);
 
-      // Get category... TODO not used for now
+      // Validate hash2
+      const hash2Valid = hash2.slice(-5) === payloadHash;
+      if (!hash2Valid) {
+        return {
+          category: 0,
+          oneTime: '',
+          payload: ''
+        };
+      }
+
+      // Get category...not used for now, but it's in the code
       const categoryNibble = payloadHex.slice(0, 1);
       const category = parseInt(categoryNibble) === 2 ? 2 : 1;
 
@@ -216,8 +225,6 @@
 
       // Get payload
       const payload = payloadHex.slice(-2);
-
-      // skip hash check for now (TODO), assume that the tour code is valid
 
       return {
         category,
@@ -239,6 +246,13 @@
       // (category is not used for now)
       const { category, oneTime, payload } = decodeTourCode(tourCode);
 
+      if (oneTime === '' && payload === '') {
+        document.getElementById('output').textContent = 'Invalid tour code';
+        return;
+      }
+
+      // note: in Plaza, the payload used here is a random value (to make the output less predictable),
+      // but we don't need to do that
       const baseCode = "2" + oneTime + payload;
 
       // HMAC-MD5
