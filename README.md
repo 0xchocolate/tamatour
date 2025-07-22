@@ -1,3 +1,3 @@
-Generate "parting code" for Tamagotchi Uni Tour without Plaza!
+Live at: https://0xchocolate.github.io/tamatour/
 
-Future work: Validation, interpretation, and generation of Uni tour codes
+Generate "parting code" for Tamagotchi Uni Tour without Plaza!
