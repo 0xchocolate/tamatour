@@ -84,8 +84,12 @@
     }
 
     a {
-      color: #8a2be2;
+      color: #2196f3;
       text-decoration: none;
+    }
+
+    code {
+      font-family: monospace, monospace;
     }
   </style>
 </head>
@@ -94,10 +98,12 @@
     <h1>Tamagotchi Uni Tour Code Generator</h1>
     <p>How to use: Go to Plaza Link on the Tamagotchi Uni, hand out flyers, and join a Tamahiko Tour.</p>
     <p>Enter the tour code from Uni below to get a corresponding parting code.</p>
+    <p><a href="javascript:autogenTourCode()">You can also generate a tour code for Plaza by tapping here!</a></p>
     <input type="text" id="inputCode" placeholder="Enter tour code from Uni" maxlength="8" />
     <div id="output">Parting Code will appear here</div>
     <p>💜 cococode</p>
     <p><a href="https://discord.gg/EJdkbWxz" target="_blank">Tap here to join our vpet hacking discord!</a></p>
+    <p>Tip: Double-check for similar characters, especially: <code>O, 0, I, 1, l</code></p>
   </div>
 
   <!-- CryptoJS (for HMAC-MD5) -->
@@ -189,6 +195,40 @@
       return decimal.toString(16);
     }
 
+    function hmacMD5(hexstr) {
+      const hash1 = CryptoJS.HmacMD5(hexstr, "9R14i10zFk").toString(CryptoJS.enc.Hex);
+      const replaceHash1 = applyCharLUT(hash1);
+      const hash2 = CryptoJS.HmacMD5(replaceHash1, "ywcp3uAA6l").toString(CryptoJS.enc.Hex);
+      return hash2.slice(-5);
+    }
+
+    function autogenTourCode() {
+      // First generate a random hex string of 6 characters with '1' prefix
+      const randomHex = '1' + Math.random().toString(16).substring(2, 8).padStart(6, '0');
+
+      // Generate hash and append to hex
+      const finalHash = hmacMD5(randomHex);
+      const hexCode = randomHex + finalHash;
+
+      // Convert hex to base64
+      const base64 = hexToCustomBase64(hexCode);
+
+      // Apply LUT
+      const base64LUT = applyIntLUT(base64);
+
+      // Convert base64 to tour code
+      const tourCode = base64LUT.map(c => ALPHANUMSYM[c]).join('');
+
+      // If tour code is valid, set it and generate parting code
+      if (tourCode.length === 8 && decodeTourCode(tourCode).oneTime !== '') {
+        document.getElementById('inputCode').value = tourCode;
+        generate(isAutogen = true);
+      } else {
+        // If tour code is invalid, generate a new one
+        autogenTourCode();
+      }
+    }
+
     function decodeTourCode(tourCode) {
       // Convert tour code to base64 (custom base64)
       const base64TourCode = strToBase64(tourCode);
@@ -201,24 +241,14 @@
       const payloadHex = hexTourCode.slice(0, -5);
       const payloadHash = hexTourCode.slice(-5);
 
-      // Payload hash1
-      const hash1 = CryptoJS.HmacMD5(payloadHex, "9R14i10zFk").toString(CryptoJS.enc.Hex);
-      const replaceHash1 = applyCharLUT(hash1);
-      const hash2 = CryptoJS.HmacMD5(replaceHash1, "ywcp3uAA6l").toString(CryptoJS.enc.Hex);
-
-      // Validate hash2
-      const hash2Valid = hash2.slice(-5) === payloadHash;
-      if (!hash2Valid) {
+      // Validate hash
+      const hashValid = hmacMD5(payloadHex) === payloadHash;
+      if (!hashValid) {
         return {
-          category: 0,
           oneTime: '',
           payload: ''
         };
       }
-
-      // Get category...not used for now, but it's in the code
-      const categoryNibble = payloadHex.slice(0, 1);
-      const category = parseInt(categoryNibble) === 2 ? 2 : 1;
 
       // Get oneTime
       const oneTime = payloadHex.slice(1, 5);
@@ -227,13 +257,12 @@
       const payload = payloadHex.slice(-2);
 
       return {
-        category,
         oneTime,
         payload
       };
     }
 
-    function generate() {
+    function generate(isAutogen = false) {
       const tourCode = document.getElementById('inputCode').value;
 
       // Check if tour code is exactly 8 characters
@@ -242,9 +271,8 @@
         return;
       }
 
-      // Get category, oneTime, payload
-      // (category is not used for now)
-      const { category, oneTime, payload } = decodeTourCode(tourCode);
+      // Get oneTime, payload
+      const { oneTime, payload } = decodeTourCode(tourCode);
 
       if (oneTime === '' && payload === '') {
         document.getElementById('output').textContent = 'Invalid tour code';
@@ -255,14 +283,8 @@
       // but we don't need to do that
       const baseCode = "2" + oneTime + payload;
 
-      // HMAC-MD5
-      const hash1 = CryptoJS.HmacMD5(baseCode, "9R14i10zFk").toString(CryptoJS.enc.Hex);
-      const replaceHash1 = applyCharLUT(hash1);
-      const hash2 = CryptoJS.HmacMD5(replaceHash1, "ywcp3uAA6l").toString(CryptoJS.enc.Hex);
-
-      // get last 5 characters of hash
-      const finalHash = hash2.slice(-5);
-
+      // Generate hash and append to hex
+      const finalHash = hmacMD5(baseCode);
       const hexCode = baseCode + finalHash;
 
       // Convert hex to base64
@@ -276,6 +298,10 @@
 
       // Show result
       document.getElementById('output').textContent = `Parting Code: ${partingCode}`;
+
+      if (isAutogen) {
+        document.getElementById('output').innerHTML = `Parting Code: ${partingCode.slice(0, 3)}.....<br>(code from Plaza will vary due to randomization)`;
+      }
     }
   </script>
 
