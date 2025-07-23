@@ -23,7 +23,7 @@
       border-radius: 15px;
       box-shadow: 0 8px 32px rgba(147, 112, 219, 0.3);
       border: 3px solid #9370db;
-      width: 80vw;
+      width: 90vw;
       margin: 2vh auto;
       box-sizing: border-box;
       display: flex;
@@ -84,12 +84,17 @@
     }
 
     a {
-      color: #2196f3;
+      color: #8a2be2;
       text-decoration: none;
     }
 
     code {
       font-family: monospace, monospace;
+    }
+
+    #autogenButton {
+      color: #2196f3;
+      text-decoration: none;
     }
   </style>
 </head>
@@ -98,7 +103,7 @@
     <h1>Tamagotchi Uni Tour Code Generator</h1>
     <p>How to use: Go to Plaza Link on the Tamagotchi Uni, hand out flyers, and join a Tamahiko Tour.</p>
     <p>Enter the tour code from Uni below to get a corresponding parting code.</p>
-    <p><a href="javascript:autogenTourCode()">You can also generate a tour code for Plaza by tapping here!</a></p>
+    <p><a href="javascript:autogenTourCode()" id="autogenButton">You can also generate a tour code for Plaza by tapping here!</a></p>
     <input type="text" id="inputCode" placeholder="Enter tour code from Uni" maxlength="8" />
     <div id="output">Parting Code will appear here</div>
     <p>💜 cococode</p>
