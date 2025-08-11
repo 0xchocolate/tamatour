@@ -92,6 +92,19 @@
       font-family: monospace, monospace;
     }
 
+    select {
+      font-family: monospace, monospace;
+      width: 100%;
+      padding: 1em;
+      font-size: 1.2em;
+      border: 2px solid #9370db;
+      border-radius: 12px;
+      background: white;
+      color: black;
+      box-sizing: border-box;
+      margin: 0.3em 0;
+    }
+
     #autogenButton {
       color: #2196f3;
       text-decoration: none;
@@ -101,9 +114,23 @@
 <body>
   <div class="content-window">
     <h1>Tamagotchi Uni Tour Code Generator</h1>
-    <p>How to use: Go to Plaza Link on the Tamagotchi Uni, hand out flyers, and join a Tamahiko Tour.</p>
-    <p>Enter the tour code from Uni below to get a corresponding parting code.</p>
+    <p>How to use: Go to Plaza Link on the Tamagotchi Uni, hand out flyers (score does not matter!), and join a Tamahiko Tour.</p>
+    <p>Select the item you want to get, and enter the tour code from Uni below to get a corresponding parting code.</p>
     <p><a href="javascript:autogenTourCode()" id="autogenButton">You can also generate a tour code for Plaza by tapping here!</a></p>
+    <select id="inputPayload">
+      <option value="06">Item: 500g</option>
+      <option value="07">Item: teeth balloon</option>
+      <option value="08">Item: shining floatmingo</option>
+      <option value="09">Item: galette beret</option>
+      <option value="0a">Item: huge glasses</option>
+      <option value="0b">Item: rapper hat</option>
+      <option value="0c">Item: changing curtain</option>
+      <option value="0d">Item: protein shaker</option>
+      <option value="0e">Item: teapot hat</option>
+      <option value="0f">Item: wow factor</option>
+      <option value="10">Item: charitchi toy</option>
+      <option value="">random</option>
+    </select>
     <input type="text" id="inputCode" placeholder="Enter tour code from Uni" maxlength="8" />
     <div id="output">Parting Code will appear here</div>
     <p>💜 cococode</p>
@@ -115,17 +142,23 @@
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
 
   <script>
-    // Add event listener for input changes
+    // Add event listener for input and payload changes
     document.getElementById('inputCode').addEventListener('input', function(event) {
       const tourCode = event.target.value;
       
       // Auto-generate when length is exactly 8
       if (tourCode.length === 8) {
-        generate();
+        const payload = document.getElementById('inputPayload').value;
+        generate(false, payload);
       } else {
         // Reset output if not 8 characters
         document.getElementById('output').textContent = 'Parting Code will appear here';
       }
+    });
+
+    document.getElementById('inputPayload').addEventListener('change', function(event) {
+      const payload = event.target.value;
+      generate(false, payload);
     });
 
     const ALPHANUMSYM = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!?";
@@ -249,25 +282,18 @@
       // Validate hash
       const hashValid = hmacMD5(payloadHex) === payloadHash;
       if (!hashValid) {
-        return {
-          oneTime: '',
-          payload: ''
-        };
+        return '';
       }
 
       // Get oneTime
       const oneTime = payloadHex.slice(1, 5);
 
-      // Get payload
-      const payload = payloadHex.slice(-2);
+      // no need to parse Uni payload (last 2 characters)
 
-      return {
-        oneTime,
-        payload
-      };
+      return oneTime;
     }
 
-    function generate(isAutogen = false) {
+    function generate(isAutogen = false, payload = '') {
       const tourCode = document.getElementById('inputCode').value;
 
       // Check if tour code is exactly 8 characters
@@ -276,16 +302,19 @@
         return;
       }
 
-      // Get oneTime, payload
-      const { oneTime, payload } = decodeTourCode(tourCode);
+      // Get oneTime
+      const oneTime = decodeTourCode(tourCode);
 
-      if (oneTime === '' && payload === '') {
+      if (oneTime === '') {
         document.getElementById('output').textContent = 'Invalid tour code';
         return;
       }
 
-      // note: in Plaza, the payload used here is a random value (to make the output less predictable),
-      // but we don't need to do that
+      if (payload === '') {
+        // generate two random hex characters
+        payload = Math.random().toString(16).substring(2, 4);
+      }
+
       const baseCode = "2" + oneTime + payload;
 
       // Generate hash and append to hex
